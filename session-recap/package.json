@@ -1,0 +1,13 @@
+{
+  "name": "pi-session-recap",
+  "version": "0.1.0",
+  "description": "Write a handoff recap into the transcript when a Pi session ends, so resuming starts with where you left off.",
+  "type": "module",
+  "private": true,
+  "files": ["extensions", "README.md"],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": { "@earendil-works/pi-coding-agent": "*" },
+  "pi": { "extensions": ["./extensions"] }
+}
