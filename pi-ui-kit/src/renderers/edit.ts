@@ -6,11 +6,12 @@ import type { EditToolInput } from "@earendil-works/pi-coding-agent";
 import { fit } from "../ansi.ts";
 import { asyncLines, linesComponent } from "../component.ts";
 import { diffStat, parseUnifiedDiff, renderDiffRows, renderSplitDiffRows } from "../diff.ts";
+import { fileIcon } from "../icons.ts";
 import { displayPath, fileLink } from "../link.ts";
 import type { ToolRenderer } from "../registry.ts";
 import type { UiKitServices } from "../services.ts";
 import type { UiToolRenderContext } from "../types.ts";
-import { headerLines, resultText } from "./shared.ts";
+import { headerLines, resultText, statusDot } from "./shared.ts";
 
 export function renderDiffBlock(
   diffText: string,
@@ -50,10 +51,12 @@ export function renderDiffBlock(
 export const editRenderer: ToolRenderer<EditToolInput> = {
   renderCall(args, theme, context, services) {
     return linesComponent((width) => {
+      const config = services.config();
       const path = String(args?.path ?? "");
       const shown = displayPath(path, context.cwd);
-      const linked = fileLink(path, context.cwd, shown, services.config().hyperlinks);
-      return headerLines(theme, "edit", theme.fg("accent", linked), width);
+      const linked = fileLink(path, context.cwd, shown, config.hyperlinks);
+      const detail = fileIcon(path, config.fileIcons) + theme.fg("accent", linked);
+      return headerLines(theme, "edit", detail, width, statusDot(theme, context, config.statusDots));
     });
   },
 

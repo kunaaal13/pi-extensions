@@ -73,6 +73,13 @@ All keys live under `"uiKit"` in `.pi/settings.json` (project) or `~/.pi/setting
 | `splitMinWidth` | `150` | Terminal width where `auto` switches to split |
 | `header` | `false` | Two-line codex-style header (cwd + session duration) |
 | `footer` | `false` | Minimal statusline (context % + tok/s │ model + thinking) |
+| `fileIcons` | `true` | Nerd-font icons before file paths |
+| `statusDots` | `true` | Colored per-row status dot (pending/success/error) |
+| `turnReceipt` | `true` | `✻ Turn took Ns · tools · session` line per agent run |
+| `thinkingLabel` | `"∴ Thinking…"` | Collapsed-thinking marker; empty keeps pi default |
+| `mcpRendering` | `true` | Generic renderer for renderer-less MCP/extension tools |
+| `mcpOutputMode` | `"preview"` | `hidden`, `summary`, or `preview` |
+| `liveToolPreviewLines` | `5` | Output tail under a still-running bash row |
 
 Runtime: `/ui-kit status`, `/ui-kit refresh`, `/ui-kit theme <shiki-theme>`.
 
@@ -98,8 +105,7 @@ node --experimental-strip-types scripts/generate-pierre-themes.ts
 ## Roadmap
 
 - Shiki in streaming markdown (blocked: pi's `MarkdownTheme.highlightCode` hook is sync and not reachable per-extension — needs an upstream hook)
-- MCP renderer helpers, live bash output preview while running
-- Status dots / branch connectors for grouped calls
+- Branch connectors for grouped calls, tool border modes
 
 ## Credits
 

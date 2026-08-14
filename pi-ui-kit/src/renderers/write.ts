@@ -5,17 +5,20 @@
 import type { WriteToolInput } from "@earendil-works/pi-coding-agent";
 import { fit } from "../ansi.ts";
 import { asyncLines, linesComponent } from "../component.ts";
+import { fileIcon } from "../icons.ts";
 import { displayPath, fileLink } from "../link.ts";
 import type { ToolRenderer } from "../registry.ts";
-import { headerLines, lineCount, note, resultText } from "./shared.ts";
+import { headerLines, lineCount, note, resultText, statusDot } from "./shared.ts";
 
 export const writeRenderer: ToolRenderer<WriteToolInput> = {
   renderCall(args, theme, context, services) {
     return linesComponent((width) => {
+      const config = services.config();
       const path = String(args?.path ?? "");
       const shown = displayPath(path, context.cwd);
-      const linked = fileLink(path, context.cwd, shown, services.config().hyperlinks);
-      return headerLines(theme, "write", theme.fg("accent", linked), width);
+      const linked = fileLink(path, context.cwd, shown, config.hyperlinks);
+      const detail = fileIcon(path, config.fileIcons) + theme.fg("accent", linked);
+      return headerLines(theme, "write", detail, width, statusDot(theme, context, config.statusDots));
     });
   },
 

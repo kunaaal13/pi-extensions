@@ -20,6 +20,8 @@ import { installChrome } from "./chrome.ts";
 import { bustConfigCache, loadConfig, type UiKitConfig } from "./config.ts";
 import { installToolGrouping } from "./grouping.ts";
 import { HighlightService } from "./highlight.ts";
+import { installMcpRendering } from "./mcp.ts";
+import { installReceipt } from "./receipt.ts";
 import { installSpinner } from "./spinner.ts";
 import { isLightTheme, resolvePalette, type ResolvedPalette } from "./palette.ts";
 import { RendererRegistry } from "./registry.ts";
@@ -93,6 +95,11 @@ export function createUiKit(pi: ExtensionAPI): UiKit {
     installToolGrouping(pi, () => config.groupToolCalls);
     installSpinner(pi, () => config.spinner, () => config.spinnerVerbs);
     installChrome(pi, { header: () => config.header, footer: () => config.footer });
+    installReceipt(pi, {
+      receipt: () => config.turnReceipt,
+      thinkingLabel: () => config.thinkingLabel,
+    });
+    installMcpRendering(pi, services, () => config.mcpRendering);
 
     registry.register("read", readRenderer);
     registry.register("bash", bashRenderer);

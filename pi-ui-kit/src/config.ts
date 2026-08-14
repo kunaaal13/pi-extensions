@@ -50,6 +50,20 @@ export interface UiKitConfig {
   header: boolean;
   /** Minimal statusline footer (context % + tok/s | model + thinking). */
   footer: boolean;
+  /** Nerd-font file icons before paths in tool headers. */
+  fileIcons: boolean;
+  /** Colored status dot per tool row (pending/success/error). */
+  statusDots: boolean;
+  /** "✻ Turn took Ns" line after each agent run. */
+  turnReceipt: boolean;
+  /** Label shown for collapsed thinking blocks; empty keeps pi's default. */
+  thinkingLabel: string;
+  /** Wrap renderer-less MCP/extension tools with the generic renderer. */
+  mcpRendering: boolean;
+  /** MCP/extension tool output: hidden, summary, or preview. */
+  mcpOutputMode: string;
+  /** Tail lines shown under a still-running bash row. */
+  liveToolPreviewLines: number;
 }
 
 export const DEFAULT_CONFIG: UiKitConfig = {
@@ -69,6 +83,13 @@ export const DEFAULT_CONFIG: UiKitConfig = {
   splitMinWidth: 150,
   header: false,
   footer: false,
+  fileIcons: true,
+  statusDots: true,
+  turnReceipt: true,
+  thinkingLabel: "∴ Thinking…",
+  mcpRendering: true,
+  mcpOutputMode: "preview",
+  liveToolPreviewLines: 5,
 };
 
 const CACHE_TTL_MS = 5000;

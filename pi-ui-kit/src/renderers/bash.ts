@@ -6,7 +6,7 @@ import type { BashToolInput } from "@earendil-works/pi-coding-agent";
 import { fit, tailLines, wrapRows } from "../ansi.ts";
 import { linesComponent } from "../component.ts";
 import type { ToolRenderer } from "../registry.ts";
-import { note, resultText } from "./shared.ts";
+import { note, resultText, statusDot } from "./shared.ts";
 
 interface BashState {
   uiKitStartedAt?: number;
@@ -20,12 +20,13 @@ function elapsedText(state: BashState): string | undefined {
 }
 
 export const bashRenderer: ToolRenderer<BashToolInput> = {
-  renderCall(args, theme, context) {
+  renderCall(args, theme, context, services) {
     const state = context.state as BashState;
     if (context.executionStarted && !state.uiKitStartedAt) state.uiKitStartedAt = Date.now();
     return linesComponent((width) => {
       const command = String(args?.command ?? "");
-      const heading = `${theme.fg("toolTitle", theme.bold("$"))} ${theme.fg("mdCode", command)}`;
+      const dot = statusDot(theme, context, services.config().statusDots);
+      const heading = `${dot}${theme.fg("toolTitle", theme.bold("$"))} ${theme.fg("mdCode", command)}`;
       return wrapRows(heading, width, 3);
     });
   },
@@ -36,7 +37,12 @@ export const bashRenderer: ToolRenderer<BashToolInput> = {
     return linesComponent((width) => {
       const config = services.config();
       const text = resultText(result);
-      const limit = options.expanded ? config.expandedMaxLines : config.bashCollapsedLines;
+      // While running: small live tail. Settled: collapsed tail or expanded.
+      const limit = options.isPartial
+        ? config.liveToolPreviewLines
+        : options.expanded
+          ? config.expandedMaxLines
+          : config.bashCollapsedLines;
       const { lines: tail, total } = tailLines(text, limit);
       const color = context.isError ? "error" : "toolOutput";
       const rows = tail.map((line) => theme.fg(color, fit(line, width)));

@@ -5,21 +5,24 @@
 import type { ReadToolInput } from "@earendil-works/pi-coding-agent";
 import { fit } from "../ansi.ts";
 import { asyncLines, linesComponent } from "../component.ts";
+import { fileIcon } from "../icons.ts";
 import { displayPath, fileLink } from "../link.ts";
 import type { ToolRenderer } from "../registry.ts";
-import { headerLines, lineCount, note, resultText } from "./shared.ts";
+import { headerLines, lineCount, note, resultText, statusDot } from "./shared.ts";
 
 export const readRenderer: ToolRenderer<ReadToolInput> = {
   renderCall(args, theme, context, services) {
     return linesComponent((width) => {
+      const config = services.config();
       const path = args?.path ?? "";
       const shown = displayPath(path, context.cwd);
-      const linked = fileLink(path, context.cwd, shown, services.config().hyperlinks);
+      const linked = fileLink(path, context.cwd, shown, config.hyperlinks);
       const range =
         args?.offset || args?.limit
           ? theme.fg("muted", ` [${args.offset ?? 1}..${args.limit ? (args.offset ?? 1) + args.limit - 1 : ""}]`)
           : "";
-      return headerLines(theme, "read", theme.fg("accent", linked) + range, width);
+      const detail = fileIcon(path, config.fileIcons) + theme.fg("accent", linked) + range;
+      return headerLines(theme, "read", detail, width, statusDot(theme, context, config.statusDots));
     });
   },
 

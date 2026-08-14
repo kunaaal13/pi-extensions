@@ -3,6 +3,7 @@
  */
 import type { AgentToolResult, Theme } from "@earendil-works/pi-coding-agent";
 import { fit, wrapRows } from "../ansi.ts";
+import type { UiToolRenderContext } from "../types.ts";
 
 /** First text block of a tool result, or "". */
 export function resultText(result: AgentToolResult<unknown>): string {
@@ -18,14 +19,33 @@ export function hasImageContent(result: AgentToolResult<unknown>): boolean {
   return (result.content ?? []).some((block) => block.type === "image");
 }
 
-/** `name detail` heading, wrapped to at most two rows. */
+/**
+ * Status dot for a tool row: pending (warning) while running, error red,
+ * success green once settled. Empty string when disabled.
+ */
+export function statusDot(
+  theme: Theme,
+  context: UiToolRenderContext,
+  enabled: boolean,
+): string {
+  if (!enabled) return "";
+  const color = context.isError
+    ? "error"
+    : !context.executionStarted || context.isPartial
+      ? "warning"
+      : "success";
+  return `${theme.fg(color, "●")} `;
+}
+
+/** `● name detail` heading, wrapped to at most two rows. */
 export function headerLines(
   theme: Theme,
   name: string,
   detail: string,
   width: number,
+  dot = "",
 ): string[] {
-  const heading = `${theme.fg("toolTitle", theme.bold(name))} ${detail}`;
+  const heading = `${dot}${theme.fg("toolTitle", theme.bold(name))} ${detail}`;
   return wrapRows(heading, width, 2);
 }
 

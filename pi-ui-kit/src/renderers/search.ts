@@ -6,7 +6,7 @@ import { fit } from "../ansi.ts";
 import { linesComponent } from "../component.ts";
 import { displayPath } from "../link.ts";
 import type { ToolRenderer } from "../registry.ts";
-import { headerLines, note, resultText } from "./shared.ts";
+import { headerLines, note, resultText, statusDot } from "./shared.ts";
 
 function previewResult(
   toolName: string,
@@ -39,7 +39,7 @@ function previewResult(
 }
 
 export const grepRenderer: ToolRenderer = {
-  renderCall(args, theme, context) {
+  renderCall(args, theme, context, services) {
     return linesComponent((width) => {
       const pattern = String((args as { pattern?: unknown })?.pattern ?? "");
       const path = (args as { path?: unknown })?.path;
@@ -48,27 +48,30 @@ export const grepRenderer: ToolRenderer = {
         (typeof path === "string" && path
           ? theme.fg("muted", ` in ${displayPath(path, context.cwd)}`)
           : "");
-      return headerLines(theme, "grep", detail, width);
+      const dot = statusDot(theme, context, services.config().statusDots);
+      return headerLines(theme, "grep", detail, width, dot);
     });
   },
   renderResult: previewResult("grep"),
 };
 
 export const findRenderer: ToolRenderer = {
-  renderCall(args, theme, context) {
+  renderCall(args, theme, context, services) {
     return linesComponent((width) => {
       const pattern = String((args as { pattern?: unknown })?.pattern ?? "");
-      return headerLines(theme, "find", theme.fg("accent", pattern), width);
+      const dot = statusDot(theme, context, services.config().statusDots);
+      return headerLines(theme, "find", theme.fg("accent", pattern), width, dot);
     });
   },
   renderResult: previewResult("find"),
 };
 
 export const lsRenderer: ToolRenderer = {
-  renderCall(args, theme, context) {
+  renderCall(args, theme, context, services) {
     return linesComponent((width) => {
       const path = String((args as { path?: unknown })?.path ?? ".");
-      return headerLines(theme, "ls", theme.fg("accent", displayPath(path, context.cwd)), width);
+      const dot = statusDot(theme, context, services.config().statusDots);
+      return headerLines(theme, "ls", theme.fg("accent", displayPath(path, context.cwd)), width, dot);
     });
   },
   renderResult: previewResult("ls"),
