@@ -1,13 +1,54 @@
 {
   "name": "pi-context-rename",
   "version": "0.1.0",
-  "description": "Generate a short title for the current Pi chat and propagate it to the host terminal.",
-  "type": "module",
-  "private": true,
-  "files": ["extensions", "README.md"],
-  "scripts": {
-    "typecheck": "tsc --noEmit --allowImportingTsExtensions --target ES2022 --module NodeNext --moduleResolution NodeNext --skipLibCheck extensions/rename.ts"
+  "description": "Names your Pi chat from its own content and propagates the title to the terminal tab",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "session-name",
+    "rename",
+    "terminal-title",
+    "osc",
+    "herdr",
+    "coding-agent"
+  ],
+  "license": "MIT",
+  "author": "kunaaal13",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kunaaal13/pi-context-rename.git"
   },
-  "peerDependencies": { "@earendil-works/pi-coding-agent": "*" },
-  "pi": { "extensions": ["./extensions"] }
+  "homepage": "https://github.com/kunaaal13/pi-context-rename#readme",
+  "bugs": {
+    "url": "https://github.com/kunaaal13/pi-context-rename/issues"
+  },
+  "type": "module",
+  "files": [
+    "extensions/rename.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "pack:dry-run": "npm pack --dry-run",
+    "publish:dry-run": "npm publish --dry-run"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.2",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/rename.ts"
+    ]
+  }
 }

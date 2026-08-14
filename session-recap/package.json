@@ -1,13 +1,56 @@
 {
   "name": "pi-session-recap",
   "version": "0.1.0",
-  "description": "Write a handoff recap into the transcript when a Pi session ends, so resuming starts with where you left off.",
-  "type": "module",
-  "private": true,
-  "files": ["extensions", "README.md"],
-  "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+  "description": "Handoff recaps for Pi sessions — a short summary plus the next action, written into the transcript when a session ends",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "session-recap",
+    "handoff",
+    "summary",
+    "transcript",
+    "resume",
+    "coding-agent"
+  ],
+  "license": "MIT",
+  "author": "kunaaal13",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kunaaal13/pi-session-recap.git"
   },
-  "peerDependencies": { "@earendil-works/pi-coding-agent": "*" },
-  "pi": { "extensions": ["./extensions"] }
+  "homepage": "https://github.com/kunaaal13/pi-session-recap#readme",
+  "bugs": {
+    "url": "https://github.com/kunaaal13/pi-session-recap/issues"
+  },
+  "type": "module",
+  "files": [
+    "extensions/recap.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "pack:dry-run": "npm pack --dry-run",
+    "publish:dry-run": "npm publish --dry-run"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.2",
+    "@earendil-works/pi-tui": "^0.84.2",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/recap.ts"
+    ]
+  }
 }

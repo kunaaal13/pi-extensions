@@ -10,6 +10,9 @@ const MAX_INPUT = 4000;
 
 type Config = { model?: string; maxWords: number; maxChars: number };
 
+type HerdrPane = { result?: { pane?: { tab_id?: string } } };
+type HerdrTab = { result?: { tab?: { pane_count?: number } } };
+
 async function getConfig(): Promise<Config> {
   try {
     const value = JSON.parse(await readFile(configPath, "utf8")) as Partial<Config>;
@@ -26,10 +29,11 @@ async function getConfig(): Promise<Config> {
 function contentText(content: unknown): string {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
-  return content
-    .filter((part: any) => part?.type === "text" && typeof part.text === "string")
-    .map((part: any) => part.text)
-    .join("\n");
+  const parts: string[] = [];
+  for (const part of content as Array<Record<string, unknown>>) {
+    if (part?.type === "text" && typeof part.text === "string") parts.push(part.text);
+  }
+  return parts.join("\n");
 }
 
 function recentConversation(ctx: ExtensionContext, fallback = ""): string {
@@ -45,13 +49,17 @@ function recentConversation(ctx: ExtensionContext, fallback = ""): string {
 
 async function makeTitle(input: string, ctx: ExtensionContext, signal: AbortSignal): Promise<string> {
   const cfg = await getConfig();
-  // Use Pi's currently selected model, regardless of provider.
-  const model = ctx.model ?? ctx.modelRegistry.getAvailable().find(m => m.input.includes("text"));
+  // A configured `provider/modelId` wins; otherwise use Pi's currently selected
+  // model, regardless of provider.
+  const configured = cfg.model?.includes("/")
+    ? ctx.modelRegistry.find(cfg.model.slice(0, cfg.model.indexOf("/")), cfg.model.slice(cfg.model.indexOf("/") + 1))
+    : undefined;
+  const model = configured ?? ctx.model ?? ctx.modelRegistry.getAvailable().find(m => m.input.includes("text"));
   if (!model) throw new Error("No active text model is available.");
   const response = await ctx.modelRegistry.complete(model, {
     systemPrompt: `Return only a short chat title, lowercase, no punctuation, at most ${cfg.maxWords} words and ${cfg.maxChars} characters.`,
     messages: [{ role: "user", content: input, timestamp: Date.now() }],
-  }, { signal, maxRetries: 0, maxTokens: 48, thinkingLevel: "off" } as any);
+  }, { signal, maxRetries: 0, maxTokens: 48, thinkingLevel: "off" } as never);
   if (response.stopReason !== "stop") throw new Error(response.errorMessage || "Title generation failed.");
   const title = response.content.filter(p => p.type === "text").map(p => p.text).join(" ").trim().toLowerCase().replace(/\s+/g, " ");
   if (!title || title.length > cfg.maxChars || title.split(" ").length > cfg.maxWords) throw new Error("Invalid title returned by model.");
@@ -65,10 +73,11 @@ async function renameHost(title: string): Promise<void> {
   if (!paneId) return;
   try {
     await exec("herdr", ["pane", "rename", paneId, title]);
-    const pane = JSON.parse((await exec("herdr", ["pane", "get", paneId])).stdout) as any;
+    const pane = JSON.parse((await exec("herdr", ["pane", "get", paneId])).stdout) as HerdrPane;
     const tabId = pane?.result?.pane?.tab_id;
     if (!tabId) return;
-    const tab = JSON.parse((await exec("herdr", ["tab", "get", tabId])).stdout) as any;
+    const tab = JSON.parse((await exec("herdr", ["tab", "get", tabId])).stdout) as HerdrTab;
+    // Renaming the tab is only unambiguous when the tab holds this pane alone.
     if (tab?.result?.tab?.pane_count === 1) await exec("herdr", ["tab", "rename", tabId, title]);
   } catch {
     // Host integration is optional; Pi session naming still succeeds.
@@ -119,5 +128,4 @@ export default function contextRename(pi: ExtensionAPI): void {
       await rename(input, ctx);
     },
   });
-
 }
