@@ -105,64 +105,12 @@ function hasVisibleContent(line: string): boolean {
   return stripAnsi(line).trim().length > 0;
 }
 
-function removeResultComponent(container?: ComponentContainer): boolean {
-  if (
-    !container ||
-    !Array.isArray(container.children) ||
-    typeof container.removeChild !== "function"
-  )
-    return false;
-  for (const child of container.children.slice(1)) container.removeChild(child);
-  return true;
-}
-
-function collapseGenericResult(row: ToolExecutionRow): boolean {
-  const text = row.contentText?.text;
-  if (
-    typeof text !== "string" ||
-    typeof row.contentText?.setText !== "function"
-  )
-    return false;
-
-  const output = row.getTextOutput?.();
-  if (!output) return true;
-  const suffix = `\n${output}`;
-  if (!text.endsWith(suffix)) return false;
-  row.contentText.setText(text.slice(0, -suffix.length));
-  return true;
-}
-
-function hideResultImages(row: ToolExecutionRow): void {
-  if (typeof row.removeChild !== "function") return;
-  for (const image of row.imageComponents ?? []) row.removeChild(image);
-  for (const spacer of row.imageSpacers ?? []) row.removeChild(spacer);
-  row.imageComponents = [];
-  row.imageSpacers = [];
-}
-
 function hasImageResult(row: ToolExecutionRow): boolean {
   return (
     row.result?.content?.some((content) => content.type === "image") === true ||
     (row.imageComponents?.length ?? 0) > 0 ||
     (row.imageSpacers?.length ?? 0) > 0
   );
-}
-
-function collapseSuccessfulResult(row: ToolExecutionRow): void {
-  if (
-    row.expanded !== false ||
-    row.isPartial !== false ||
-    !row.result ||
-    row.result.isError ||
-    hasImageResult(row) ||
-    row.getRenderShell?.() === "self"
-  )
-    return;
-
-  const collapsed = row.hasRendererDefinition?.()
-    ? removeResultComponent(row.contentBox)
-    : collapseGenericResult(row);
-  if (collapsed) hideResultImages(row);
 }
 
 function isToolExecutionRow(
@@ -794,11 +742,11 @@ function installPresentationPatch(): PresentationPatchState | undefined {
         state.groupCache.delete(this);
       }
       state.originalUpdateDisplay.call(this);
-      try {
-        if (groupingEnabled() && !isLiveRow(this)) collapseSuccessfulResult(this);
-      } catch {
-        // Presentation is cosmetic; preserve pi's renderer if internals change.
-      }
+      // Unlike the upstream extension, individual rows keep their full
+      // renderer output — pi-ui-kit's own renderers are already compact, and
+      // stripping the result here would blank read/grep/write previews.
+      // Rows only collapse visually while rendered as part of a multi-row
+      // group (renderGroupedToolRows substitutes content temporarily).
     };
     // Only mark liveRenderedRows here; leave the row's own header untouched.
     const patchedRender = function renderWithToolGroupHeader(

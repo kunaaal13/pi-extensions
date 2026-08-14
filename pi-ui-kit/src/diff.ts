@@ -28,7 +28,13 @@ export interface ParsedDiff {
   removed: number;
 }
 
-/** Parse unified-diff text (as produced by pi's edit tool details.diff). */
+/**
+ * Parse diff text into lines. Handles both formats:
+ *  - pi's `generateDiffString` output (edit tool `details.diff`): each line is
+ *    `+<lineNum> <content>` / `-<lineNum> <content>` / ` <lineNum> <content>`,
+ *    with `...` separator rows between hunks.
+ *  - standard unified diffs with `@@ -a,b +c,d @@` hunk headers.
+ */
 export function parseUnifiedDiff(diffText: string): ParsedDiff {
   const lines: DiffLine[] = [];
   let added = 0;
@@ -36,7 +42,36 @@ export function parseUnifiedDiff(diffText: string): ParsedDiff {
   let oldNumber = 0;
   let newNumber = 0;
 
+  const numbered = /^([+\- ])\s*(\d+) (.*)$/;
+  const looksNumbered = diffText
+    .split("\n")
+    .filter((line) => line.length > 0)
+    .every((line) => numbered.test(line) || /^\s*(?:\.\.\.|…)\s*$/.test(line) || line.trim() === "");
+
   for (const raw of diffText.split("\n")) {
+    if (looksNumbered) {
+      if (/^\s*(?:\.\.\.|…)\s*$/.test(raw)) {
+        lines.push({ kind: "hunk", text: raw });
+        continue;
+      }
+      const match = numbered.exec(raw);
+      if (!match) continue;
+      const [, sign, lineNumber, text] = match;
+      const number = Number(lineNumber);
+      if (sign === "+") {
+        lines.push({ kind: "add", newNumber: number, text });
+        added++;
+      } else if (sign === "-") {
+        lines.push({ kind: "del", oldNumber: number, text });
+        removed++;
+      } else {
+        // pi's format numbers context rows by the NEW file; reconstruct the
+        // old number from the running add/del delta.
+        lines.push({ kind: "ctx", oldNumber: number - (added - removed), newNumber: number, text });
+      }
+      continue;
+    }
+
     if (raw.startsWith("+++") || raw.startsWith("---") || raw.startsWith("diff ") || raw.startsWith("index ")) {
       continue;
     }
@@ -140,7 +175,10 @@ export function renderDiffRows(diff: ParsedDiff, options: RenderDiffOptions): st
       : undefined;
 
   const gutterWidth = String(
-    Math.max(1, ...contentLines.map((line) => line.newNumber ?? line.oldNumber ?? 1)),
+    Math.max(
+      1,
+      ...contentLines.flatMap((line) => [line.newNumber ?? 1, line.oldNumber ?? 1]),
+    ),
   ).length;
 
   const rows: string[] = [];
@@ -165,13 +203,18 @@ export function renderDiffRows(diff: ParsedDiff, options: RenderDiffOptions): st
     const gutterBg = isAdd ? palette.ansi.bgGutterAdd : isDel ? palette.ansi.bgGutterDel : "";
     const sign = isAdd ? "+" : isDel ? "-" : " ";
     const signColor = isAdd ? palette.ansi.fgAdd : isDel ? palette.ansi.fgDel : palette.ansi.fgDim;
-    const number = line.newNumber ?? line.oldNumber ?? 0;
-    const gutter = `${gutterBg}${palette.ansi.fgLnum} ${String(number).padStart(gutterWidth)} ${RESET}`;
+    // Claude Code-style dual gutter: old line number, sign, new line number.
+    const oldCell = String(line.oldNumber ?? "").padStart(gutterWidth);
+    const newCell = String(line.newNumber ?? "").padStart(gutterWidth);
+    const gutter =
+      `${gutterBg}${palette.ansi.fgLnum} ${oldCell} ${RESET}` +
+      `${background}${signColor}${sign}${RESET}` +
+      `${gutterBg}${palette.ansi.fgLnum} ${newCell} ${RESET}`;
 
     const highlightedText = options.highlighted?.[index];
     let body = buildBody(line, highlightedText, background, emphasisBg);
-    const prefix = `${gutter}${background}${signColor}${sign} ${RESET}${background}`;
-    const used = 1 + gutterWidth + 2 + 2; // gutter padding + number + sign cell
+    const prefix = `${gutter}${background} `;
+    const used = 2 * (gutterWidth + 2) + 2; // two number cells + sign + pad
     body = fitPreservingBackground(body, Math.max(4, width - used), background);
     rows.push(padToWidth(`${prefix}${body}`, width, background || undefined));
   }
