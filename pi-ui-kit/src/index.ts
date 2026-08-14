@@ -44,7 +44,10 @@ export { RendererRegistry, type ToolMatch, type ToolRenderer } from "./registry.
 export { bashRenderer } from "./renderers/bash.ts";
 export { editRenderer, renderDiffBlock } from "./renderers/edit.ts";
 export { readRenderer } from "./renderers/read.ts";
+export { findRenderer, grepRenderer, lsRenderer } from "./renderers/search.ts";
 export { writeRenderer } from "./renderers/write.ts";
+export { installToolGrouping } from "./grouping.ts";
+export { installSpinner } from "./spinner.ts";
 export { createUiKit, type UiKit } from "./kit.ts";
 export type { UiKitServices } from "./services.ts";
 export type { UiToolRenderContext } from "./types.ts";

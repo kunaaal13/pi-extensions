@@ -36,6 +36,12 @@ export interface UiKitConfig {
   diffCollapsedLines: number;
   /** Emit OSC-8 hyperlinks on file paths. */
   hyperlinks: boolean;
+  /** Group adjacent collapsed tool calls into one compact block. */
+  groupToolCalls: boolean;
+  /** Claude Code-style working spinner (verb + thinking level + tokens + elapsed). */
+  spinner: boolean;
+  /** Custom spinner verb pool; empty uses the built-in list. */
+  spinnerVerbs: string[];
 }
 
 export const DEFAULT_CONFIG: UiKitConfig = {
@@ -48,6 +54,9 @@ export const DEFAULT_CONFIG: UiKitConfig = {
   bashCollapsedLines: 10,
   diffCollapsedLines: 24,
   hyperlinks: true,
+  groupToolCalls: true,
+  spinner: true,
+  spinnerVerbs: [],
 };
 
 const CACHE_TTL_MS = 5000;

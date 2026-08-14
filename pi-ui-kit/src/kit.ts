@@ -7,6 +7,9 @@
 import {
   createBashToolDefinition,
   createEditToolDefinition,
+  createFindToolDefinition,
+  createGrepToolDefinition,
+  createLsToolDefinition,
   createReadToolDefinition,
   createWriteToolDefinition,
   type ExtensionAPI,
@@ -14,12 +17,15 @@ import {
   type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
 import { bustConfigCache, loadConfig, type UiKitConfig } from "./config.ts";
+import { installToolGrouping } from "./grouping.ts";
 import { HighlightService } from "./highlight.ts";
+import { installSpinner } from "./spinner.ts";
 import { isLightTheme, resolvePalette, type ResolvedPalette } from "./palette.ts";
 import { RendererRegistry } from "./registry.ts";
 import { bashRenderer } from "./renderers/bash.ts";
 import { editRenderer } from "./renderers/edit.ts";
 import { readRenderer } from "./renderers/read.ts";
+import { findRenderer, grepRenderer, lsRenderer } from "./renderers/search.ts";
 import { writeRenderer } from "./renderers/write.ts";
 import { hasImageContent } from "./renderers/shared.ts";
 import type { UiKitServices } from "./services.ts";
@@ -37,6 +43,9 @@ const BUILT_IN_FACTORIES: Record<string, BuiltInFactory> = {
   bash: (cwd) => createBashToolDefinition(cwd),
   edit: (cwd) => createEditToolDefinition(cwd),
   write: (cwd) => createWriteToolDefinition(cwd),
+  grep: (cwd) => createGrepToolDefinition(cwd),
+  find: (cwd) => createFindToolDefinition(cwd),
+  ls: (cwd) => createLsToolDefinition(cwd),
 };
 
 export function createUiKit(pi: ExtensionAPI): UiKit {
@@ -80,10 +89,16 @@ export function createUiKit(pi: ExtensionAPI): UiKit {
   }
 
   function install(): void {
+    installToolGrouping(pi, () => config.groupToolCalls);
+    installSpinner(pi, () => config.spinner, () => config.spinnerVerbs);
+
     registry.register("read", readRenderer);
     registry.register("bash", bashRenderer);
     registry.register("edit", editRenderer);
     registry.register("write", writeRenderer);
+    registry.register("grep", grepRenderer);
+    registry.register("find", findRenderer);
+    registry.register("ls", lsRenderer);
 
     for (const [name, factory] of Object.entries(BUILT_IN_FACTORIES)) {
       const base = factory(cwd);
