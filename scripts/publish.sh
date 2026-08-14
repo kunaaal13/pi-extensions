@@ -64,9 +64,10 @@ whoami_out="$(npm whoami 2>/dev/null || true)"
 [ -n "$whoami_out" ] || die "not logged in to npm; run 'npm login' first"
 info "publishing as $whoami_out${dry_run:+ (dry run)}"
 
-if [ -z "$otp" ] && [ -z "$dry_run" ] && [ ! -t 0 ]; then
-  echo "  note: no TTY and no --otp. If your account enforces 2FA on writes," >&2
-  echo "        npm cannot prompt and the publish will fail with EOTP." >&2
+if [ -z "$otp" ] && [ -z "$dry_run" ] && { [ ! -t 0 ] || [ ! -t 1 ]; }; then
+  echo "  note: no TTY and no --otp. If the account enforces 2FA on writes, npm" >&2
+  echo "        cannot run its browser handshake and publishing fails with EOTP." >&2
+  echo "        Re-run in a real terminal, or pass --otp <code>." >&2
 fi
 
 published=0
@@ -90,7 +91,8 @@ for pkg in "${targets[@]}"; do
   [ -n "$dry_run" ] && args+=(--dry-run)
   [ -n "$otp" ] && args+=(--otp "$otp")
 
-  (cd "$pkg" && npm "${args[@]}" >/dev/null) || die "$name failed to publish"
+  # No output redirection: npm needs a TTY to run its interactive 2FA handshake.
+  (cd "$pkg" && npm "${args[@]}") || die "$name failed to publish"
   ok "published${dry_run:+ (dry run)}"
   published=$((published + 1))
 done
