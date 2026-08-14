@@ -1,7 +1,7 @@
 {
   "name": "pi-session-recap",
-  "version": "0.1.0",
-  "description": "Handoff recaps for Pi sessions — a short summary plus the next action, written into the transcript when a session ends",
+  "version": "0.1.1",
+  "description": "Handoff recaps for Pi sessions \u2014 a short summary plus the next action, written into the transcript when a session ends",
   "keywords": [
     "pi-package",
     "pi-extension",
@@ -17,11 +17,12 @@
   "author": "kunaaal13",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kunaaal13/pi-session-recap.git"
+    "url": "git+https://github.com/kunaaal13/pi-extensions.git",
+    "directory": "session-recap"
   },
-  "homepage": "https://github.com/kunaaal13/pi-session-recap#readme",
+  "homepage": "https://github.com/kunaaal13/pi-extensions/tree/main/session-recap#readme",
   "bugs": {
-    "url": "https://github.com/kunaaal13/pi-session-recap/issues"
+    "url": "https://github.com/kunaaal13/pi-extensions/issues"
   },
   "type": "module",
   "files": [

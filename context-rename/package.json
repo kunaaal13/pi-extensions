@@ -1,6 +1,6 @@
 {
   "name": "pi-context-rename",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Names your Pi chat from its own content and propagates the title to the terminal tab",
   "keywords": [
     "pi-package",
@@ -17,11 +17,12 @@
   "author": "kunaaal13",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kunaaal13/pi-context-rename.git"
+    "url": "git+https://github.com/kunaaal13/pi-extensions.git",
+    "directory": "context-rename"
   },
-  "homepage": "https://github.com/kunaaal13/pi-context-rename#readme",
+  "homepage": "https://github.com/kunaaal13/pi-extensions/tree/main/context-rename#readme",
   "bugs": {
-    "url": "https://github.com/kunaaal13/pi-context-rename/issues"
+    "url": "https://github.com/kunaaal13/pi-extensions/issues"
   },
   "type": "module",
   "files": [

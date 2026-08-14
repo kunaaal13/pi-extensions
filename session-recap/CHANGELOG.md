@@ -3,6 +3,15 @@
 All notable changes to `pi-session-recap` are documented here. This project
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.1 — 2026-08-15
+
+### Fixed
+
+- **Repository links** — `repository`, `homepage`, and `bugs` pointed at a
+  standalone `kunaaal13/pi-session-recap` repository that does not exist. They now
+  point at `kunaaal13/pi-extensions` with `repository.directory` set to
+  `session-recap`, so the links on npmjs.com resolve.
+
 ## 0.1.0 — 2026-08-15
 
 Initial release.
