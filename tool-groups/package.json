@@ -1,0 +1,13 @@
+{
+  "name": "pi-tool-groups",
+  "version": "0.1.0",
+  "description": "Collapse Pi's adjacent tool calls into compact, gear-headed groups with wrapped (not truncated) bullet summaries.",
+  "type": "module",
+  "private": true,
+  "files": ["extensions", "README.md"],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": { "@earendil-works/pi-coding-agent": "*" },
+  "pi": { "extensions": ["./extensions"] }
+}

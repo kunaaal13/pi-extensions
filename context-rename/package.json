@@ -1,0 +1,13 @@
+{
+  "name": "pi-context-rename",
+  "version": "0.1.0",
+  "description": "Generate a short title for the current Pi chat and propagate it to the host terminal.",
+  "type": "module",
+  "private": true,
+  "files": ["extensions", "README.md"],
+  "scripts": {
+    "typecheck": "tsc --noEmit --allowImportingTsExtensions --target ES2022 --module NodeNext --moduleResolution NodeNext --skipLibCheck extensions/rename.ts"
+  },
+  "peerDependencies": { "@earendil-works/pi-coding-agent": "*" },
+  "pi": { "extensions": ["./extensions"] }
+}
