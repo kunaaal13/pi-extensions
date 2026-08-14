@@ -117,7 +117,7 @@ function generate(sourceFile: string, outName: string): void {
       borderMuted: toward(text, bg, 0.82),
       success: "green",
       error: "red",
-      warning: "orange",
+      warning: "yellow",
       muted: "muted",
       dim: "dim",
       text: "text",
@@ -141,7 +141,7 @@ function generate(sourceFile: string, outName: string): void {
       mdHeading: "violet",
       mdLink: "accent",
       mdLinkUrl: "dim",
-      mdCode: "purple",
+      mdCode: "pink",
       mdCodeBlock: "green",
       mdCodeBlockBorder: "gray",
       mdQuote: "muted",
@@ -154,12 +154,12 @@ function generate(sourceFile: string, outName: string): void {
       toolDiffContext: "muted",
 
       syntaxComment: rgbToHex(comment),
-      syntaxKeyword: "purple",
+      syntaxKeyword: "pink",
       syntaxFunction: "violet",
       syntaxVariable: rgbToHex(variable),
       syntaxString: "green",
-      syntaxNumber: "orange",
-      syntaxType: "cyan",
+      syntaxNumber: "blue",
+      syntaxType: "magenta",
       syntaxOperator: rgbToHex(operator),
       syntaxPunctuation: "gray",
 
@@ -173,6 +173,13 @@ function generate(sourceFile: string, outName: string): void {
       bashMode: "orange",
     },
   };
+
+  // Every color must be a hex literal or resolve to a declared var.
+  for (const [key, value] of Object.entries(theme.colors)) {
+    if (!/^#[0-9a-f]{6}$/i.test(value) && !(value in theme.vars)) {
+      throw new Error(`${outName}: color "${key}" references unknown var "${value}"`);
+    }
+  }
 
   mkdirSync(join(root, "themes"), { recursive: true });
   const outPath = join(root, "themes", `${outName}.json`);
