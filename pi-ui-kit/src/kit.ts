@@ -16,6 +16,7 @@ import {
   type Theme,
   type ToolDefinition,
 } from "@earendil-works/pi-coding-agent";
+import { installChrome } from "./chrome.ts";
 import { bustConfigCache, loadConfig, type UiKitConfig } from "./config.ts";
 import { installToolGrouping } from "./grouping.ts";
 import { HighlightService } from "./highlight.ts";
@@ -91,6 +92,7 @@ export function createUiKit(pi: ExtensionAPI): UiKit {
   function install(): void {
     installToolGrouping(pi, () => config.groupToolCalls);
     installSpinner(pi, () => config.spinner, () => config.spinnerVerbs);
+    installChrome(pi, { header: () => config.header, footer: () => config.footer });
 
     registry.register("read", readRenderer);
     registry.register("bash", bashRenderer);

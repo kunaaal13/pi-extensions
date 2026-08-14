@@ -66,6 +66,13 @@ All keys live under `"uiKit"` in `.pi/settings.json` (project) or `~/.pi/setting
 | `bashCollapsedLines` | `10` | Tail lines for collapsed bash output |
 | `diffCollapsedLines` | `24` | Diff lines before collapsing |
 | `hyperlinks` | `true` | OSC-8 links on file paths |
+| `groupToolCalls` | `true` | Merge adjacent collapsed tool calls into one block |
+| `spinner` | `true` | Claude Code-style working spinner |
+| `spinnerVerbs` | `[]` | Custom verb pool for the spinner |
+| `diffView` | `"auto"` | `unified`, `split`, or `auto` (split when wide) |
+| `splitMinWidth` | `150` | Terminal width where `auto` switches to split |
+| `header` | `false` | Two-line codex-style header (cwd + session duration) |
+| `footer` | `false` | Minimal statusline (context % + tok/s │ model + thinking) |
 
 Runtime: `/ui-kit status`, `/ui-kit refresh`, `/ui-kit theme <shiki-theme>`.
 
@@ -80,13 +87,19 @@ Everything in `src/index.ts` is public API:
 - `linesComponent` / `asyncLines` — sync Components over async highlighting
 - `fileLink` / `osc8` / `displayPath`, ANSI + color math utilities
 
+## Pierre TUI themes
+
+The package ships full pi themes generated from `@pierre/theme` — `/theme pierre-dark` or `/theme pierre-light` skins the whole TUI, not just diffs. Regenerate after a Pierre update with:
+
+```bash
+node --experimental-strip-types scripts/generate-pierre-themes.ts
+```
+
 ## Roadmap
 
-- Pierre pi-theme pack: full TUI theme JSONs generated from `@pierre/theme`, shipped via `resources_discover`, with auto light/dark
-- Statusline footer (context %, token speed, model, thinking level)
-- Shiki in streaming markdown via `registerMarkdownTransformer`
-- Split diff view, grep/find/ls renderers, MCP renderer helpers
-- Optional grouped-tool-calls package (isolated, guarded patches — pi has no public hook yet)
+- Shiki in streaming markdown (blocked: pi's `MarkdownTheme.highlightCode` hook is sync and not reachable per-extension — needs an upstream hook)
+- MCP renderer helpers, live bash output preview while running
+- Status dots / branch connectors for grouped calls
 
 ## Credits
 

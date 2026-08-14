@@ -42,6 +42,14 @@ export interface UiKitConfig {
   spinner: boolean;
   /** Custom spinner verb pool; empty uses the built-in list. */
   spinnerVerbs: string[];
+  /** Diff layout: unified, split (side-by-side), or auto by terminal width. */
+  diffView: string;
+  /** Minimum terminal width for auto split view. */
+  splitMinWidth: number;
+  /** Codex-style two-line header (cwd + session duration). */
+  header: boolean;
+  /** Minimal statusline footer (context % + tok/s | model + thinking). */
+  footer: boolean;
 }
 
 export const DEFAULT_CONFIG: UiKitConfig = {
@@ -57,6 +65,10 @@ export const DEFAULT_CONFIG: UiKitConfig = {
   groupToolCalls: true,
   spinner: true,
   spinnerVerbs: [],
+  diffView: "auto",
+  splitMinWidth: 150,
+  header: false,
+  footer: false,
 };
 
 const CACHE_TTL_MS = 5000;

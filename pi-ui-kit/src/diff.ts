@@ -207,3 +207,99 @@ function fitPreservingBackground(body: string, maxWidth: number, background: str
   if (visibleWidth(stripAnsi(body)) <= maxWidth) return body;
   return fit(body, maxWidth - 1) + background;
 }
+
+interface SplitCell {
+  line?: DiffLine;
+  index: number;
+}
+
+/** Pair old/new sides for split view: ctx lines mirror, del/add runs zip. */
+function pairForSplit(lines: DiffLine[]): Array<{ left: SplitCell; right: SplitCell }> {
+  const pairs: Array<{ left: SplitCell; right: SplitCell }> = [];
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (line.kind === "hunk") continue;
+    if (line.kind === "ctx") {
+      pairs.push({ left: { line, index }, right: { line, index } });
+      continue;
+    }
+    if (line.kind === "del") {
+      const delStart = index;
+      while (index < lines.length && lines[index].kind === "del") index++;
+      const addStart = index;
+      while (index < lines.length && lines[index].kind === "add") index++;
+      const delCount = addStart - delStart;
+      const addCount = index - addStart;
+      for (let row = 0; row < Math.max(delCount, addCount); row++) {
+        pairs.push({
+          left: { line: lines[delStart + row]?.kind === "del" ? lines[delStart + row] : undefined, index: delStart + row },
+          right: { line: row < addCount ? lines[addStart + row] : undefined, index: addStart + row },
+        });
+      }
+      index--;
+      continue;
+    }
+    // Standalone add run (no preceding del).
+    pairs.push({ left: { line: undefined, index }, right: { line, index } });
+  }
+  return pairs;
+}
+
+function renderSplitCell(
+  cell: SplitCell,
+  cellWidth: number,
+  side: "left" | "right",
+  options: RenderDiffOptions,
+  gutterWidth: number,
+): string {
+  const { palette } = options;
+  const line = cell.line;
+  if (!line) {
+    return `${palette.ansi.bgEmpty}${" ".repeat(cellWidth)}${RESET}`;
+  }
+  const isChange = side === "left" ? line.kind === "del" : line.kind === "add";
+  const background = !isChange ? "" : side === "left" ? palette.ansi.bgDel : palette.ansi.bgAdd;
+  const emphasisBg = side === "left" ? palette.ansi.bgDelHighlight : palette.ansi.bgAddHighlight;
+  const number = side === "left" ? line.oldNumber : line.newNumber;
+  const gutter = `${palette.ansi.fgLnum} ${String(number ?? "").padStart(gutterWidth)} ${RESET}`;
+  const highlighted = options.highlighted?.[cell.index];
+  let body = buildBody(line, highlighted, background, emphasisBg);
+  const bodyWidth = Math.max(2, cellWidth - gutterWidth - 2);
+  body = fitPreservingBackground(body, bodyWidth, background);
+  return padToWidth(`${gutter}${background}${body}`, cellWidth, background || undefined);
+}
+
+/**
+ * Side-by-side split view: old on the left, new on the right, separated by a
+ * rule. Same palette/highlight inputs as `renderDiffRows`.
+ */
+export function renderSplitDiffRows(diff: ParsedDiff, options: RenderDiffOptions): string[] {
+  const { palette, width } = options;
+  const divider = `${palette.ansi.fgRule}│${RESET}`;
+  const cellWidth = Math.max(10, Math.floor((width - 1) / 2));
+  const contentLines = diff.lines.filter((line) => line.kind !== "hunk");
+  const gutterWidth = String(
+    Math.max(1, ...contentLines.map((line) => line.newNumber ?? line.oldNumber ?? 1)),
+  ).length;
+
+  const pairs = pairForSplit(diff.lines);
+  const limit =
+    options.maxLines && options.maxLines > 0 && pairs.length > options.maxLines
+      ? options.maxLines
+      : undefined;
+
+  const rows: string[] = [];
+  for (let row = 0; row < pairs.length; row++) {
+    if (limit !== undefined && row >= limit) {
+      rows.push(`${palette.ansi.fgDim}… +${pairs.length - row} more lines${RESET}`);
+      break;
+    }
+    const pair = pairs[row];
+    rows.push(
+      renderSplitCell(pair.left, cellWidth, "left", options, gutterWidth) +
+        divider +
+        renderSplitCell(pair.right, cellWidth, "right", options, gutterWidth),
+    );
+  }
+  return rows;
+}

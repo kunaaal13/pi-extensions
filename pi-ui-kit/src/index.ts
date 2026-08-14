@@ -18,10 +18,12 @@ export {
 } from "./color.ts";
 export { asyncLines, linesComponent } from "./component.ts";
 export { bustConfigCache, DEFAULT_CONFIG, loadConfig, type UiKitConfig } from "./config.ts";
+export { installChrome } from "./chrome.ts";
 export {
   diffStat,
   parseUnifiedDiff,
   renderDiffRows,
+  renderSplitDiffRows,
   type DiffLine,
   type DiffLineKind,
   type ParsedDiff,

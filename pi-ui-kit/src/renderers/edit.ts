@@ -5,7 +5,7 @@
 import type { EditToolInput } from "@earendil-works/pi-coding-agent";
 import { fit } from "../ansi.ts";
 import { asyncLines, linesComponent } from "../component.ts";
-import { diffStat, parseUnifiedDiff, renderDiffRows } from "../diff.ts";
+import { diffStat, parseUnifiedDiff, renderDiffRows, renderSplitDiffRows } from "../diff.ts";
 import { displayPath, fileLink } from "../link.ts";
 import type { ToolRenderer } from "../registry.ts";
 import type { UiKitServices } from "../services.ts";
@@ -25,10 +25,14 @@ export function renderDiffBlock(
   const palette = services.palette();
   const diff = parseUnifiedDiff(diffText);
   const maxLines = expanded ? config.expandedMaxLines : config.diffCollapsedLines;
-  const plainRows = renderDiffRows(diff, { width, palette, maxLines });
+  const split =
+    config.diffView === "split" ||
+    (config.diffView === "auto" && width >= config.splitMinWidth);
+  const render = split ? renderSplitDiffRows : renderDiffRows;
+  const plainRows = render(diff, { width, palette, maxLines });
 
   const language = services.highlight.languageForPath(filePath);
-  const key = `${services.highlight.epoch}|${width}|${maxLines}|${diffText.length}`;
+  const key = `${services.highlight.epoch}|${width}|${maxLines}|${split}|${diffText.length}`;
   return asyncLines(context, slot, key, plainRows, async () => {
     const highlighted = await Promise.all(
       diff.lines.map((line) =>
@@ -39,7 +43,7 @@ export function renderDiffBlock(
               .then((lines) => lines?.[0]),
       ),
     );
-    return renderDiffRows(diff, { width, palette, maxLines, highlighted });
+    return render(diff, { width, palette, maxLines, highlighted });
   });
 }
 
